@@ -68,6 +68,12 @@ module_param(rightalt_as_rightctrl, uint, 0644);
 MODULE_PARM_DESC(rightalt_as_rightctrl, "Use the right Alt key as a right Ctrl key. "
 		"[0] = as-is, Mac layout. 1 = Right Alt is right Ctrl");
 
+static unsigned int rightalt_as_backspace;
+module_param(rightalt_as_backspace, uint, 0644);
+MODULE_PARM_DESC(rightalt_as_backspace, "Use the right Alt key as a backspace key. "
+		"[0] = as-is, Mac layout. 1 = Right Alt is backspace");
+
+
 static unsigned int ejectcd_as_delete;
 module_param(ejectcd_as_delete, uint, 0644);
 MODULE_PARM_DESC(ejectcd_as_delete, "Use Eject-CD key as Delete key. "
@@ -114,6 +120,7 @@ static const struct apple_key_translation macbookair_fn_keys[] = {
 	{ KEY_DOWN,	KEY_PAGEDOWN },
 	{ KEY_LEFT,	KEY_HOME },
 	{ KEY_RIGHT,	KEY_END },
+	{ KEY_RIGHTALT,	KEY_DELETE },
 	{ }
 };
 
@@ -136,6 +143,7 @@ static const struct apple_key_translation apple_fn_keys[] = {
 	{ KEY_DOWN,	KEY_PAGEDOWN },
 	{ KEY_LEFT,	KEY_HOME },
 	{ KEY_RIGHT,	KEY_END },
+	{ KEY_RIGHTALT,	KEY_DELETE },
 	{ }
 };
 
@@ -155,6 +163,7 @@ static const struct apple_key_translation powerbook_fn_keys[] = {
 	{ KEY_DOWN,	KEY_PAGEDOWN },
 	{ KEY_LEFT,	KEY_HOME },
 	{ KEY_RIGHT,	KEY_END },
+	{ KEY_RIGHTALT,	KEY_DELETE },
 	{ }
 };
 
@@ -190,7 +199,7 @@ static const struct apple_key_translation apple_iso_keyboard[] = {
 static const struct apple_key_translation swapped_option_cmd_keys[] = {
 	{ KEY_LEFTALT,	KEY_LEFTMETA },
 	{ KEY_LEFTMETA,	KEY_LEFTALT },
-	{ KEY_RIGHTALT,	KEY_RIGHTMETA },
+//	{ KEY_RIGHTALT,	KEY_RIGHTMETA },
 	{ KEY_RIGHTMETA,KEY_RIGHTALT },
 	{ }
 };
@@ -296,7 +305,11 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 					do_translate = asc->fn_on;
 				}
 
-				code = do_translate ? trans->to : trans->from;
+				if (rightalt_as_backspace && trans->from == KEY_RIGHTALT) {
+					code = do_translate ? KEY_DELETE : KEY_BACKSPACE;
+				} else {
+					code = do_translate ? trans->to : trans->from;
+				}
 			}
 
 			input_event(input, usage->type, code, value);
